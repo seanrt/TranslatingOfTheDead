@@ -11,7 +11,8 @@ if not pygame.mixer: print 'Warning, sound disabled'
 RED = (255,0,0)
 GREEN = (0,255,0)
 BLUE = (0,0,255)
-ENEMYTEXT = "test"
+ENEMYTEXT = ["one","two","three","four","five"]
+NUMWORDS = 5
 
 # Main Python class
 class PyManMain:
@@ -63,12 +64,18 @@ class PyManMain:
 			# Enemies are spawned randomly, up to a certain amount. They then move
 			if self.enemyCount != self.enemyMax:
 				if randint(1,self.spawnRate) == self.spawnRate:
-					self.spawnEnemy(randint(self.enemySpeedMin,10),ENEMYTEXT)
+					self.spawnEnemy(randint(self.enemySpeedMin,10),ENEMYTEXT[randint(0,NUMWORDS-1)])
 					self.enemyCount += 1
 			for enemy in self.enemy_sprites:
 				if (enemy.speed != 0) and (self.timer%enemy.speed == 0):
 					enemy.move(self.base.rect.left,self.base.rect.top)
+				elif enemy.speed == 0:
+					enemy.shrink()
+					if enemy.size < 10:
+						self.enemy_sprites.remove(enemy)
 			
+			# self.enemyCount = len(self.enemy_sprites)
+
 			# The screen is updated every run through the loop
 			self.screen.fill([0,0,0])
 			text = scoreFont.render("Enemies %s" % self.enemyCount, 1, GREEN)
@@ -77,8 +84,15 @@ class PyManMain:
 			text = scoreFont.render(self.text, 1, BLUE)
 			textpos = text.get_rect(centerx=self.width/2,centery=self.height*0.95)
 			self.screen.blit(text, textpos)
+
+			for enemy in self.enemy_sprites:
+				if enemy.speed != 0:
+					text = scoreFont.render(enemy.text,1,RED)
+					textpos = text.get_rect(centerx=enemy.rect.left,centery=enemy.rect.top)
+					self.screen.blit(text,textpos)
 			self.enemy_sprites.draw(self.screen)
 			self.base_sprites.draw(self.screen)
+
 			pygame.display.flip()
 
 			# A collision ends the game
@@ -114,14 +128,13 @@ class PyManMain:
 			h = randint(0,self.height)
 		self.enemy_sprites.add(Enemy(speed,text,pygame.Rect(w, h, w, h)))
 
-# """This is our snake that will move around the screen"""
 class Enemy(pygame.sprite.Sprite):
 	def __init__(self, speed, text, rect=None):
 		pygame.sprite.Sprite.__init__(self) 
 		self.image, self.rect = load_image('snake.png',-1)
-		self.alive = 1
 		self.speed = speed
 		self.text = text
+		self.size = 64
 		if rect != None:
 			self.rect = rect
 
@@ -142,7 +155,10 @@ class Enemy(pygame.sprite.Sprite):
 	def boom(self):
 		self.image = load_image('deadsnake.png',-1)[0]
 		self.speed = 0
-		self.alive = 0
+
+	def shrink(self):
+		self.size = int(self.size*0.9)
+		self.image = pygame.transform.scale(self.image, (self.size, self.size))
 
 class Base(pygame.sprite.Sprite):
 	def __init__(self, rect=None):
