@@ -8,6 +8,11 @@ import math
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
 
+RED = (255,0,0)
+GREEN = (0,255,0)
+BLUE = (0,0,255)
+ENEMYTEXT = "test"
+
 # Main Python class
 class PyManMain:
 	def __init__(self, width=800,height=600):
@@ -27,34 +32,51 @@ class PyManMain:
 		self.enemyCount = 0
 		self.enemyMax = 10
 		self.enemySpeedMin = 5
+		self.text = ''
 		# """Create the Screen"""
 		self.screen = pygame.display.set_mode((self.width, self.height))
 
 	def MainLoop(self):
-		# """This is the Main Loop of the Game"""
 		# """Load All of our Sprites"""
 		self.LoadSprites()
+
+		# This is the main game state loop
 		while self.alive:
 			self.timer += 1
+			scoreFont = pygame.font.Font(None, 36)
+
+			# Here we get text inputs or quit the game
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT: 
 					sys.exit()
+				elif event.type == KEYDOWN:
+					if event.unicode.isalpha():
+						self.text += event.unicode
+					elif event.key == K_BACKSPACE:
+						self.text = self.text[:-1]
+					elif event.key == K_RETURN:
+						for enemy in self.enemy_sprites:
+							if enemy.text == self.text:
+								enemy.boom()
+						self.text = ""
 
 			# Enemies are spawned randomly, up to a certain amount. They then move
 			if self.enemyCount != self.enemyMax:
 				if randint(1,self.spawnRate) == self.spawnRate:
-					self.spawnEnemy(randint(self.enemySpeedMin,10))
+					self.spawnEnemy(randint(self.enemySpeedMin,10),ENEMYTEXT)
 					self.enemyCount += 1
 			for enemy in self.enemy_sprites:
-				if self.timer%enemy.speed == 0:
+				if (enemy.speed != 0) and (self.timer%enemy.speed == 0):
 					enemy.move(self.base.rect.left,self.base.rect.top)
 			
+			# The screen is updated every run through the loop
 			self.screen.fill([0,0,0])
-			font = pygame.font.Font(None, 36)
-			text = font.render("Enemies %s" % self.enemyCount, 1, (255, 0, 0))
+			text = scoreFont.render("Enemies %s" % self.enemyCount, 1, GREEN)
 			textpos = text.get_rect(centerx=self.width/2)
 			self.screen.blit(text, textpos)
-				# self.screen.blit(font.render("Test",1,(255,255,255)),text.get_rect(centerx=w,centery=h))
+			text = scoreFont.render(self.text, 1, BLUE)
+			textpos = text.get_rect(centerx=self.width/2,centery=self.height*0.95)
+			self.screen.blit(text, textpos)
 			self.enemy_sprites.draw(self.screen)
 			self.base_sprites.draw(self.screen)
 			pygame.display.flip()
@@ -65,28 +87,16 @@ class PyManMain:
 
 		# This is for the end of the game
 		font = pygame.font.Font(None, 80)
-		text = font.render("Game Over", 1, (255, 0, 0))
+		text = font.render("Game Over", 1, RED)
 		textpos = text.get_rect(centerx=self.width/2,centery=self.height/2)
 		self.screen.blit(text, textpos)
 		pygame.display.flip()
 		while 1:
-			pass
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT: 
+					sys.exit()
 
 	def LoadSprites(self):
-		# """Load the sprites that we need"""
-		# self.snake = Snake()
-		# self.snake_sprites = pygame.sprite.RenderPlain((self.snake))
-
-		# """figure out how many pellets we can display"""
-		# nNumHorizontal = int(self.width/64)
-		# nNumVertical = int(self.height/64)       
-		# """Create the Pellet group"""
-		# self.pellet_sprites = pygame.sprite.Group()
-		# # """Create all of the pellets and add them to the pellet_sprites group"""
-		# for x in range(nNumHorizontal):
-		# 	for y in range(nNumVertical):
-		# 		self.pellet_sprites.add(Pellet(pygame.Rect(x*64, y*64, 64, 64)))
-
 		self.enemy_sprites = pygame.sprite.Group()
 
 		# Find the bottom left of the screen and put the base there
@@ -94,7 +104,7 @@ class PyManMain:
 		self.base.rect.move_ip(self.baseWidth,self.baseHeight)
 		self.base_sprites = pygame.sprite.RenderPlain((self.base))
 
-	def spawnEnemy(self,speed):
+	def spawnEnemy(self,speed,text):
 		flag = randint(0,1)
 		if flag:	# Here the enemy spawns along the top
 			h = 0
@@ -102,21 +112,20 @@ class PyManMain:
 		else:		# Here the enemy spawns along the right
 			w = int(self.width*0.95)
 			h = randint(0,self.height)
-		self.enemy_sprites.add(Enemy(speed,pygame.Rect(w, h, w, h)))
+		self.enemy_sprites.add(Enemy(speed,text,pygame.Rect(w, h, w, h)))
 
 # """This is our snake that will move around the screen"""
 class Enemy(pygame.sprite.Sprite):
-	def __init__(self, speed, rect=None):
+	def __init__(self, speed, text, rect=None):
 		pygame.sprite.Sprite.__init__(self) 
 		self.image, self.rect = load_image('snake.png',-1)
+		self.alive = 1
 		self.speed = speed
+		self.text = text
 		if rect != None:
 			self.rect = rect
 
-	def move(self, baseX, baseY):
-		# """Move your self in one of the 4 directions according to key"""
-		# """Key is the pyGame define for either up,down,left, or right key we will adjust ourselves in that direction"""
-		
+	def move(self, baseX, baseY):		
 		xDif = baseX - self.rect.left
 		yDif = baseY - self.rect.top
 		diagonal = math.sqrt(xDif*xDif+yDif*yDif)
@@ -127,30 +136,13 @@ class Enemy(pygame.sprite.Sprite):
 		else:
 			xMove = 0
 			yMove = 0
-		# if self.rect.left > baseX:
-		# 	xMove = -1
-		# elif self.rect.left < baseX:
-		# 	xMove = 1
-		# else:
-		# 	xMove = 0
-		# if self.rect.top > baseY:
-		# 	yMove = -1
-		# elif self.rect.top < baseY:
-		# 	yMove = 1
-		# else:
-		# 	yMove = 0
 
-
-
-		# if (key == K_RIGHT):
-		# 	xMove = self.x_dist
-		# elif (key == K_LEFT):
-		# 	xMove = -self.x_dist
-		# elif (key == K_UP):
-		# 	yMove = -self.y_dist
-		# elif (key == K_DOWN):
-		# 	yMove = self.y_dist
 		self.rect.move_ip(xMove,yMove);
+
+	def boom(self):
+		self.image = load_image('deadsnake.png',-1)[0]
+		self.speed = 0
+		self.alive = 0
 
 class Base(pygame.sprite.Sprite):
 	def __init__(self, rect=None):
