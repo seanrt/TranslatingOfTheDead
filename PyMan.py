@@ -11,8 +11,9 @@ if not pygame.mixer: print 'Warning, sound disabled'
 RED = (255,0,0)
 GREEN = (0,255,0)
 BLUE = (0,0,255)
-ENEMYTEXT = ["one","two","three","four","five","six","seven","eight","nine","ten"]
-NUMWORDS = 10
+ENEMYTEXT = {'pig': 'cochon', 'horse': 'cheval', 'dog': 'chien', 'bear':'ours', 'fish':'poisson'}
+# ENEMYTEXT = ["one","two","three","four","five","six","seven","eight","nine","ten"]
+NUMWORDS = 5
 BASESPAWNRATE = 250
 BASEMAXENEMIES = 5
 BASEMINENEMYSPEED = 15
@@ -64,7 +65,7 @@ class PyManMain:
 							self.text = self.text[:-1]
 						elif event.key == K_RETURN:
 							for enemy in self.enemy_sprites:
-								if enemy.text == self.text:
+								if enemy.key == self.text:
 									enemy.boom()
 									self.score += 1
 							self.text = ""
@@ -72,7 +73,10 @@ class PyManMain:
 				# Enemies are spawned randomly, up to a certain amount. They then move
 				if self.enemyCount != self.maxEnemies:
 					if randint(1,self.spawnRate) == self.spawnRate:
-						self.spawnEnemy(randint(self.maxEnemySpeed,self.minEnemySpeed),ENEMYTEXT[randint(0,NUMWORDS-1)])
+						text, key = ENEMYTEXT.items()[randint(0,NUMWORDS-1)]
+						if randint(0,1):
+							text, key = key, text
+						self.spawnEnemy(randint(self.maxEnemySpeed,self.minEnemySpeed),text,key)
 						self.enemyCount += 1
 				for enemy in self.enemy_sprites:
 					if (enemy.speed != 0) and (self.timer%enemy.speed == 0):
@@ -143,7 +147,7 @@ class PyManMain:
 		self.base.rect.move_ip(self.baseWidth,self.baseHeight)
 		self.base_sprites = pygame.sprite.RenderPlain((self.base))
 
-	def spawnEnemy(self,speed,text):
+	def spawnEnemy(self,speed,text,key):
 		flag = randint(0,1)
 		if flag:	# Here the enemy spawns along the top
 			h = 0
@@ -151,7 +155,7 @@ class PyManMain:
 		else:		# Here the enemy spawns along the right
 			w = int(self.width*0.95)
 			h = randint(0,self.height)
-		self.enemy_sprites.add(Enemy(speed,text,pygame.Rect(w, h, w, h)))
+		self.enemy_sprites.add(Enemy(speed,text,key,pygame.Rect(w, h, w, h)))
 
 	def levelUp(self):
 		self.level += 1
@@ -162,11 +166,12 @@ class PyManMain:
 		self.spawnRate = max(50,int(self.spawnRate*0.8))
 
 class Enemy(pygame.sprite.Sprite):
-	def __init__(self, speed, text, rect=None):
+	def __init__(self, speed, text, key, rect=None):
 		pygame.sprite.Sprite.__init__(self) 
 		self.image, self.rect = load_image('snake.png',-1)
 		self.speed = speed
 		self.text = text
+		self.key = key
 		self.size = 64
 		if rect != None:
 			self.rect = rect
