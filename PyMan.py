@@ -11,6 +11,7 @@ if not pygame.mixer: print 'Warning, sound disabled'
 
 SCREENWIDTH = 800
 SCREENHEIGHT = 600
+BLACK = (0,0,0)
 WHITE = (255,255,255)
 RED = (255,0,0)
 GREEN = (0,255,0)
@@ -37,6 +38,7 @@ class PyManMain:
 		self.baseHeight = int(self.height*0.79)
 		# """Create the Screen"""
 		self.screen = pygame.display.set_mode((self.width, self.height))
+		self.bg = pygame.image.load(os.path.join('data', 'bg.png'))
 		self.start = 1
 
 		# Get all of the words and their translations
@@ -135,7 +137,8 @@ class PyManMain:
 
 	# This method fills the screen with all the current sprites and text
 	def updateScreen(self):
-		self.screen.fill([0,0,0])
+		# self.screen.fill([0,0,0])
+		self.screen.blit(self.bg, (0, 0))
 		scoreFont = pygame.font.Font(None, 36)
 		text = scoreFont.render("Level: %s" % self.level, 1, WHITE)
 		textpos = text.get_rect()
@@ -146,7 +149,7 @@ class PyManMain:
 		text = scoreFont.render("High Score: %s" % self.highScore, 1, WHITE)
 		textpos = text.get_rect(centery=53)
 		self.screen.blit(text, textpos)
-		text = scoreFont.render(self.text, 1, BLUE)
+		text = scoreFont.render(self.text, 1, WHITE)
 		textpos = text.get_rect(centerx=self.width/2,centery=self.height*0.975)
 		self.screen.blit(text, textpos)
 
@@ -160,17 +163,18 @@ class PyManMain:
 
 	# This method paints the starting screen
 	def startingScreen(self):
-		self.screen.fill([0,0,0])
+		# self.screen.fill([0,0,0])
+		self.screen.blit(self.bg, (0, 0))
 		font = pygame.font.Font(None, 80)
-		text = font.render("TRANSLATING OF THE DEAD", 1, RED)
+		text = font.render("TRANSLATING OF THE DEAD", 1, BLACK)
 		textpos = text.get_rect(centerx=self.width/2,centery=self.height/2)
 		self.screen.blit(text, textpos)
 		font = pygame.font.Font(None, 36)
-		text = font.render("PRESS ENTER TO START", 1, RED)
+		text = font.render("PRESS ENTER TO START", 1, BLACK)
 		textpos = text.get_rect(centerx=self.width/2,centery=self.height/2+40)
 		self.screen.blit(text, textpos)
 		font = pygame.font.Font(None, 24)
-		text = font.render("Stop the ghosts by typing out their corresponding French/English translation", 1, RED)
+		text = font.render("Stop the ghosts by typing out their corresponding French/English translation", 1, BLACK)
 		textpos = text.get_rect(centerx=self.width/2,centery=self.height*0.9)
 		self.screen.blit(text, textpos)
 		pygame.display.flip()
@@ -209,7 +213,7 @@ class PyManMain:
 	def levelUp(self):
 		self.updateScreen()
 		font = pygame.font.Font(None, 40)
-		text = font.render("LEVEL UP!", 1, RED)
+		text = font.render("LEVEL UP!", 1, BLACK)
 		textpos = text.get_rect(centerx=self.width/2,centery=self.height/2)
 		self.screen.blit(text, textpos)
 		pygame.display.flip()
@@ -224,11 +228,11 @@ class PyManMain:
 	def gameOver(self):
 		self.alive = 0
 		font = pygame.font.Font(None, 80)
-		text = font.render("GAME OVER", 1, RED)
+		text = font.render("GAME OVER", 1, BLACK)
 		textpos = text.get_rect(centerx=self.width/2,centery=self.height/2)
 		self.screen.blit(text, textpos)
 		font = pygame.font.Font(None, 36)
-		text = font.render("Press enter to play again", 1, RED)
+		text = font.render("Press enter to play again", 1, BLACK)
 		textpos = text.get_rect(centerx=self.width/2,centery=self.height/2+40)
 		self.screen.blit(text, textpos)
 		pygame.display.flip()
@@ -244,6 +248,9 @@ class Enemy(pygame.sprite.Sprite):
 		self.textColour = (randint(0,255),randint(0,255),randint(0,255))
 		if rect != None:
 			self.rect = rect
+		# We flip the image if it is on the left side
+		if self.rect.left < SCREENWIDTH/2:
+			self.image = pygame.transform.flip(self.image,1,0)
 
 	def move(self, baseX, baseY):		
 		xDif = baseX - self.rect.left
@@ -264,7 +271,7 @@ class Enemy(pygame.sprite.Sprite):
 		self.speed = 0
 
 	def shrink(self):
-		self.size = int(self.size*0.95)
+		self.size = int(self.size*0.975)
 		self.image = pygame.transform.scale(self.image, (self.size, self.size))
 
 class Base(pygame.sprite.Sprite):
