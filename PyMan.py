@@ -31,8 +31,10 @@ class PyManMain:
 		self.width = width
 		self.height = height
 		# Set the base position
-		self.baseWidth = int(self.width*(-0.025))
-		self.baseHeight = int(self.height*0.85)
+		# self.baseWidth = int(self.width*(-0.025))
+		# self.baseHeight = int(self.height*0.85)
+		self.baseWidth = int(self.width/2-50)
+		self.baseHeight = int(self.height*0.79)
 		# """Create the Screen"""
 		self.screen = pygame.display.set_mode((self.width, self.height))
 		self.start = 1
@@ -145,7 +147,7 @@ class PyManMain:
 		textpos = text.get_rect(centery=53)
 		self.screen.blit(text, textpos)
 		text = scoreFont.render(self.text, 1, BLUE)
-		textpos = text.get_rect(centerx=self.width/2,centery=self.height*0.95)
+		textpos = text.get_rect(centerx=self.width/2,centery=self.height*0.975)
 		self.screen.blit(text, textpos)
 
 		for enemy in self.enemy_sprites:
@@ -183,12 +185,15 @@ class PyManMain:
 				self.enemyCount += 1
 
 	def spawnEnemy(self,speed,text,key):
-		flag = randint(0,1)
-		if flag:	# Here the enemy spawns along the top
+		spawnPoint = randint(0,2)
+		if spawnPoint == 0:	# Here the enemy spawns along the top
 			h = 0
 			w = randint(int(self.width*0.1),int(self.width*0.9))
-		else:		# Here the enemy spawns along the right
+		elif spawnPoint == 1:		# Here the enemy spawns along the right
 			w = int(self.width*0.95)
+			h = randint(0,self.height)
+		else: # Here the enemy spawns along the left
+			w = int(self.width*0.05)
 			h = randint(0,self.height)
 		self.enemy_sprites.add(Enemy(speed,text,key,pygame.Rect(w, h, w, h)))
 
@@ -219,7 +224,7 @@ class PyManMain:
 	def gameOver(self):
 		self.alive = 0
 		font = pygame.font.Font(None, 80)
-		text = font.render("Game Over", 1, RED)
+		text = font.render("GAME OVER", 1, RED)
 		textpos = text.get_rect(centerx=self.width/2,centery=self.height/2)
 		self.screen.blit(text, textpos)
 		font = pygame.font.Font(None, 36)
