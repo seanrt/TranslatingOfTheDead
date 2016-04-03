@@ -6,8 +6,8 @@ from random import randint
 import math
 import time
 
-if not pygame.font: print 'Warning, fonts disabled'
-if not pygame.mixer: print 'Warning, sound disabled'
+# if not pygame.font: print 'Warning, fonts disabled'
+# if not pygame.mixer: print 'Warning, sound disabled'
 
 SCREENWIDTH = 800
 SCREENHEIGHT = 600
@@ -16,7 +16,6 @@ WHITE = (255,255,255)
 RED = (255,0,0)
 GREEN = (0,255,0)
 BLUE = (0,0,255)
-NUMWORDS = 5
 BASESPAWNRATE = 250
 BASEMAXENEMIES = 5
 BASEMINENEMYSPEED = 15
@@ -26,26 +25,23 @@ LEVELUPDELAY = 3
 # Main Python class
 class PyManMain:
 	def __init__(self, width=SCREENWIDTH,height=SCREENHEIGHT):
-		# """Initialize PyGame"""
+		# Initialize PyGame
 		pygame.init()
-		# """Set the window Size"""
+		# Set the window Size
 		self.width = width
 		self.height = height
 		# Set the base position
-		# self.baseWidth = int(self.width*(-0.025))
-		# self.baseHeight = int(self.height*0.85)
 		self.baseWidth = int(self.width/2-50)
 		self.baseHeight = int(self.height*0.79)
-		# """Create the Screen"""
+		# Create the Screen
 		self.screen = pygame.display.set_mode((self.width, self.height))
 		self.bg = pygame.image.load(os.path.join('data', 'bg.png'))
 		self.start = 1
-
 		# Get all of the words and their translations
 		self.enemyText = {}
 		self.numWords = 0
-		self.highScore = 0
 		self.getWords()
+		self.highScore = 0
 
 	def MainLoop(self):
 		while self.start:
@@ -76,17 +72,17 @@ class PyManMain:
 			while self.alive:
 				self.timer += 1
 
-				# Here we get text inputs or quit the game
-				self.getInput()
+				# The high score is constantly updated
 				if self.score > self.highScore:
 					self.highScore = self.score
-				# Enemies are spawned randomly, up to the limit and then move
+				# Here we get text inputs or quit the game
+				self.getInput()
+				# Enemies are spawned randomly and then move
 				self.spawnEnemies()
 				self.moveEnemies()
 				# The screen is updated every run through the loop
 				self.updateScreen()
 				pygame.display.flip()
-
 				# Here we move to the next level
 				if (self.enemyCount == self.maxEnemies) and (len(self.enemy_sprites) == 0):
 					self.levelUp()
@@ -103,8 +99,10 @@ class PyManMain:
 						if event.key == K_RETURN:
 							self.alive = 1
 
+	# This collects all the words and their translations, storing them in a dictionary
 	def getWords(self):
 		with open ("words.txt", "r") as myfile:
+		# with open ("japanesewords.txt", "r") as myfile:
 			data = myfile.readlines()
 			for line in data:
 				text, key = line[:-1].split()
@@ -118,7 +116,7 @@ class PyManMain:
 		self.base_sprites = pygame.sprite.RenderPlain((self.base))
 		self.enemy_sprites = pygame.sprite.Group()
 
-	# This grabs both the keyboard input and the closing of the window
+	# This grabs both the keyboard input or the closing of the window
 	def getInput(self):
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT: 
@@ -137,7 +135,7 @@ class PyManMain:
 
 	# This method fills the screen with all the current sprites and text
 	def updateScreen(self):
-		# self.screen.fill([0,0,0])
+		# This draws the background and the text
 		self.screen.blit(self.bg, (0, 0))
 		scoreFont = pygame.font.Font(None, 36)
 		text = scoreFont.render("Level: %s" % self.level, 1, WHITE)
@@ -153,6 +151,7 @@ class PyManMain:
 		textpos = text.get_rect(centerx=self.width/2,centery=self.height*0.975)
 		self.screen.blit(text, textpos)
 
+		# Now we draw the sprites
 		for enemy in self.enemy_sprites:
 			if enemy.speed != 0:
 				text = scoreFont.render(enemy.text,1,enemy.textColour)
@@ -179,6 +178,7 @@ class PyManMain:
 		self.screen.blit(text, textpos)
 		pygame.display.flip()
 
+	# Enemies can spawn based on the RNG
 	def spawnEnemies(self):
 		if self.enemyCount != self.maxEnemies:
 			if randint(1,self.spawnRate) == self.spawnRate:
@@ -201,6 +201,7 @@ class PyManMain:
 			h = randint(0,self.height)
 		self.enemy_sprites.add(Enemy(speed,text,key,pygame.Rect(w, h, w, h)))
 
+	# The enemies move towards the base over time
 	def moveEnemies(self):
 		for enemy in self.enemy_sprites:
 			if (enemy.speed != 0) and (self.timer%enemy.speed == 0):
@@ -210,6 +211,7 @@ class PyManMain:
 				if enemy.size < 5:
 					self.enemy_sprites.remove(enemy)
 
+	# When a level is completed, the enemy parameters are updated
 	def levelUp(self):
 		self.updateScreen()
 		font = pygame.font.Font(None, 40)
@@ -225,6 +227,7 @@ class PyManMain:
 		self.minEnemySpeed = max(5,self.minEnemySpeed-1)
 		self.spawnRate = max(50,int(self.spawnRate*0.8))
 
+	# The game over screen does not get painted over until enter is pressed in the main loop
 	def gameOver(self):
 		self.alive = 0
 		font = pygame.font.Font(None, 80)
@@ -252,24 +255,28 @@ class Enemy(pygame.sprite.Sprite):
 		if self.rect.left < SCREENWIDTH/2:
 			self.image = pygame.transform.flip(self.image,1,0)
 
+	# The enemy moves in a diagonal path toward the base
 	def move(self, baseX, baseY):		
 		xDif = baseX - self.rect.left
 		yDif = baseY - self.rect.top
 		diagonal = math.sqrt(xDif*xDif+yDif*yDif)
-
 		if diagonal != 0:
 			xMove = 3*xDif/diagonal
 			yMove = 3*yDif/diagonal
 		else:
 			xMove = 0
 			yMove = 0
-
 		self.rect.move_ip(xMove,yMove);
 
+	# This destroys the enemy. Setting its speed to 0 is used to indicate that it was destroyed
 	def boom(self):
 		self.image = load_image('boo-2.png',-1)[0]
+		# We flip the image if it is on the left side
+		if self.rect.left < SCREENWIDTH/2:
+			self.image = pygame.transform.flip(self.image,1,0)
 		self.speed = 0
 
+	# Destroyed enemies keep shrinking until a certain point where they are deleted
 	def shrink(self):
 		self.size = int(self.size*0.975)
 		self.image = pygame.transform.scale(self.image, (self.size, self.size))
