@@ -4,6 +4,7 @@ from pygame.locals import *
 from helpers import *
 from random import randint
 import math
+import time
 
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
@@ -13,13 +14,12 @@ SCREENHEIGHT = 600
 RED = (255,0,0)
 GREEN = (0,255,0)
 BLUE = (0,0,255)
-ENEMYTEXT = {'pig': 'cochon', 'horse': 'cheval', 'dog': 'chien', 'bear':'ours', 'fish':'poisson'}
-# ENEMYTEXT = ["one","two","three","four","five","six","seven","eight","nine","ten"]
 NUMWORDS = 5
 BASESPAWNRATE = 250
 BASEMAXENEMIES = 5
 BASEMINENEMYSPEED = 15
 BASEMAXENEMYSPEED = 10
+LEVELUPDELAY = 3
 
 # Main Python class
 class PyManMain:
@@ -39,6 +39,7 @@ class PyManMain:
 		# Get all of the words and their translations
 		self.enemyText = {}
 		self.numWords = 0
+		self.highScore = 0
 		self.getWords()
 
 	def MainLoop(self):
@@ -72,11 +73,14 @@ class PyManMain:
 
 				# Here we get text inputs or quit the game
 				self.getInput()
+				if self.score > self.highScore:
+					self.highScore = self.score
 				# Enemies are spawned randomly, up to the limit and then move
 				self.spawnEnemies()
 				self.moveEnemies()
 				# The screen is updated every run through the loop
 				self.updateScreen()
+				pygame.display.flip()
 
 				# Here we move to the next level
 				if (self.enemyCount == self.maxEnemies) and (len(self.enemy_sprites) == 0):
@@ -134,7 +138,10 @@ class PyManMain:
 		textpos = text.get_rect()
 		self.screen.blit(text, textpos)
 		text = scoreFont.render("Score: %s" % self.score, 1, GREEN)
-		textpos = text.get_rect(centery=self.height*0.07)
+		textpos = text.get_rect(centery=33)
+		self.screen.blit(text, textpos)
+		text = scoreFont.render("High Score: %s" % self.highScore, 1, GREEN)
+		textpos = text.get_rect(centery=53)
 		self.screen.blit(text, textpos)
 		text = scoreFont.render(self.text, 1, BLUE)
 		textpos = text.get_rect(centerx=self.width/2,centery=self.height*0.95)
@@ -147,8 +154,6 @@ class PyManMain:
 				self.screen.blit(text,textpos)
 		self.enemy_sprites.draw(self.screen)
 		self.base_sprites.draw(self.screen)
-
-		pygame.display.flip()
 
 	# This method paints the starting screen
 	def startingScreen(self):
@@ -196,13 +201,20 @@ class PyManMain:
 					self.enemy_sprites.remove(enemy)
 
 	def levelUp(self):
+		self.updateScreen()
+		font = pygame.font.Font(None, 40)
+		text = font.render("LEVEL UP!", 1, RED)
+		textpos = text.get_rect(centerx=self.width/2,centery=self.height/2)
+		self.screen.blit(text, textpos)
+		pygame.display.flip()
+		time.sleep(LEVELUPDELAY)
 		self.level += 1
 		self.enemyCount = 0
 		self.maxEnemies += 3
 		self.maxEnemySpeed = max(1,self.maxEnemySpeed-3)
 		self.minEnemySpeed = max(5,self.minEnemySpeed-1)
 		self.spawnRate = max(50,int(self.spawnRate*0.8))
-
+		
 	def gameOver(self):
 		self.alive = 0
 		font = pygame.font.Font(None, 80)
