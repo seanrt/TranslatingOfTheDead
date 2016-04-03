@@ -11,6 +11,7 @@ if not pygame.mixer: print 'Warning, sound disabled'
 
 SCREENWIDTH = 800
 SCREENHEIGHT = 600
+WHITE = (255,255,255)
 RED = (255,0,0)
 GREEN = (0,255,0)
 BLUE = (0,0,255)
@@ -31,7 +32,7 @@ class PyManMain:
 		self.height = height
 		# Set the base position
 		self.baseWidth = int(self.width*(-0.025))
-		self.baseHeight = int(self.height*0.925)
+		self.baseHeight = int(self.height*0.85)
 		# """Create the Screen"""
 		self.screen = pygame.display.set_mode((self.width, self.height))
 		self.start = 1
@@ -134,13 +135,13 @@ class PyManMain:
 	def updateScreen(self):
 		self.screen.fill([0,0,0])
 		scoreFont = pygame.font.Font(None, 36)
-		text = scoreFont.render("Level: %s" % self.level, 1, GREEN)
+		text = scoreFont.render("Level: %s" % self.level, 1, WHITE)
 		textpos = text.get_rect()
 		self.screen.blit(text, textpos)
-		text = scoreFont.render("Score: %s" % self.score, 1, GREEN)
+		text = scoreFont.render("Score: %s" % self.score, 1, WHITE)
 		textpos = text.get_rect(centery=33)
 		self.screen.blit(text, textpos)
-		text = scoreFont.render("High Score: %s" % self.highScore, 1, GREEN)
+		text = scoreFont.render("High Score: %s" % self.highScore, 1, WHITE)
 		textpos = text.get_rect(centery=53)
 		self.screen.blit(text, textpos)
 		text = scoreFont.render(self.text, 1, BLUE)
@@ -149,8 +150,8 @@ class PyManMain:
 
 		for enemy in self.enemy_sprites:
 			if enemy.speed != 0:
-				text = scoreFont.render(enemy.text,1,RED)
-				textpos = text.get_rect(centerx=enemy.rect.left,centery=enemy.rect.top)
+				text = scoreFont.render(enemy.text,1,enemy.textColour)
+				textpos = text.get_rect(centerx=enemy.rect.left+15,centery=enemy.rect.top-5)
 				self.screen.blit(text,textpos)
 		self.enemy_sprites.draw(self.screen)
 		self.base_sprites.draw(self.screen)
@@ -167,7 +168,7 @@ class PyManMain:
 		textpos = text.get_rect(centerx=self.width/2,centery=self.height/2+40)
 		self.screen.blit(text, textpos)
 		font = pygame.font.Font(None, 24)
-		text = font.render("Kill the zombies by typing out their corresponding French/English translation", 1, RED)
+		text = font.render("Stop the ghosts by typing out their corresponding French/English translation", 1, RED)
 		textpos = text.get_rect(centerx=self.width/2,centery=self.height*0.9)
 		self.screen.blit(text, textpos)
 		pygame.display.flip()
@@ -197,7 +198,7 @@ class PyManMain:
 				enemy.move(self.base.rect.left,self.base.rect.top)
 			elif enemy.speed == 0:
 				enemy.shrink()
-				if enemy.size < 10:
+				if enemy.size < 5:
 					self.enemy_sprites.remove(enemy)
 
 	def levelUp(self):
@@ -214,7 +215,7 @@ class PyManMain:
 		self.maxEnemySpeed = max(1,self.maxEnemySpeed-3)
 		self.minEnemySpeed = max(5,self.minEnemySpeed-1)
 		self.spawnRate = max(50,int(self.spawnRate*0.8))
-		
+
 	def gameOver(self):
 		self.alive = 0
 		font = pygame.font.Font(None, 80)
@@ -230,11 +231,12 @@ class PyManMain:
 class Enemy(pygame.sprite.Sprite):
 	def __init__(self, speed, text, key, rect=None):
 		pygame.sprite.Sprite.__init__(self) 
-		self.image, self.rect = load_image('snake.png',-1)
+		self.image, self.rect = load_image('boo-3.png',-1)
 		self.speed = speed
 		self.text = text
 		self.key = key
 		self.size = 64
+		self.textColour = (randint(0,255),randint(0,255),randint(0,255))
 		if rect != None:
 			self.rect = rect
 
@@ -253,17 +255,17 @@ class Enemy(pygame.sprite.Sprite):
 		self.rect.move_ip(xMove,yMove);
 
 	def boom(self):
-		self.image = load_image('deadsnake.png',-1)[0]
+		self.image = load_image('boo-2.png',-1)[0]
 		self.speed = 0
 
 	def shrink(self):
-		self.size = int(self.size*0.9)
+		self.size = int(self.size*0.95)
 		self.image = pygame.transform.scale(self.image, (self.size, self.size))
 
 class Base(pygame.sprite.Sprite):
 	def __init__(self, rect=None):
 		pygame.sprite.Sprite.__init__(self) 
-		self.image, self.rect = load_image('pellet.png',-1)
+		self.image, self.rect = load_image('house.png',-1)
 		if rect != None:
 			self.rect = rect
 
