@@ -10,7 +10,7 @@ I took French in school for most of my life, but once university started I had l
 This game is based off of Typing of the Dead, a game where zombies swarm the player who must type out words to kill them. In this case, players must type out the English or French translation of the words to slay the enemies. The words are loaded from a text file (words.txt), and enemies will carry either the English or French version of the word (randomly assigned). 
 Enemies spawn around the edges of the window and move towards the player's house. The player loses if one of the enemies reaches the house, and the player progresses through the levels by slaying the required amount of enemies. Each successive level increases the enemy spawn rate, average enemy speed, and max amount of enemies for the level. The game does not end, but it does keep track of the highest score.
 
-## How I built it
+## How built I it
 This game was written in Python, using the Pygame framework. Pygame is a wrapper for the SDL library designed for writing games and is highly portable.
 
 ## Challenges we ran into

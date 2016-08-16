@@ -21,12 +21,14 @@ BASEMAXENEMIES = 5
 BASEMINENEMYSPEED = 15
 BASEMAXENEMYSPEED = 10
 LEVELUPDELAY = 3
+ENEMYBASESIZE = 64
 
 # Main Python class
 class PyManMain:
 	def __init__(self, width=SCREENWIDTH,height=SCREENHEIGHT):
 		# Initialize PyGame
-		pygame.init()
+		pygame.font.init()
+		pygame.display.init()
 		# Set the window Size
 		self.width = width
 		self.height = height
@@ -189,6 +191,9 @@ class PyManMain:
 				self.enemyCount += 1
 
 	def spawnEnemy(self,speed,text,key):
+		sizeRatio = max(1.0,1.0*speed/BASEMAXENEMYSPEED) # Bigger enemies should move slower
+		print sizeRatio
+		print speed
 		spawnPoint = randint(0,2)
 		if spawnPoint == 0:	# Here the enemy spawns along the top
 			h = 0
@@ -199,7 +204,7 @@ class PyManMain:
 		else: # Here the enemy spawns along the left
 			w = int(self.width*0.05)
 			h = randint(0,self.height)
-		self.enemy_sprites.add(Enemy(speed,text,key,pygame.Rect(w, h, w, h)))
+		self.enemy_sprites.add(Enemy(speed,text,key,sizeRatio,pygame.Rect(w, h, w, h)))
 
 	# The enemies move towards the base over time
 	def moveEnemies(self):
@@ -241,13 +246,14 @@ class PyManMain:
 		pygame.display.flip()
 
 class Enemy(pygame.sprite.Sprite):
-	def __init__(self, speed, text, key, rect=None):
+	def __init__(self, speed, text, key, sizeRatio, rect=None):
 		pygame.sprite.Sprite.__init__(self) 
 		self.image, self.rect = load_image('boo-3.png',-1)
 		self.speed = speed
 		self.text = text
 		self.key = key
-		self.size = 64
+		self.size = int(ENEMYBASESIZE*sizeRatio)
+		self.image = pygame.transform.scale(self.image, (self.size, self.size)) # This rescales the image to meet the ratio		
 		self.textColour = (randint(0,255),randint(0,255),randint(0,255))
 		if rect != None:
 			self.rect = rect
